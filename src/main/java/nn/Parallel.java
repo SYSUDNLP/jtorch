@@ -1,6 +1,8 @@
 
 package nn;
 
+import java.util.function.Consumer;
+
 public final class Parallel
 {
 	public static Tensor mm(Tensor res, Tensor mat1, Tensor mat2) {
@@ -66,7 +68,7 @@ public final class Parallel
 
 	/////////////////////////////////
 
-	private java.util.function.Consumer<Integer> task;
+	private Consumer<Integer> task;
 	
 	private int taskCount;
 	private int nextTask;

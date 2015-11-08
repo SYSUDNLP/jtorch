@@ -2,9 +2,9 @@
 package nn;
 
 // Tensor
-// The Tensor class is probably the most important class in Torch. 
-// Almost every package depends on this class. 
-// It is the class for handling numeric data. 
+// The Tensor class is probably the most important class in Torch.
+// Almost every package depends on this class.
+// It is the class for handling numeric data.
 // As with pretty much anything in Torch7, tensors are serializable.
 
 // Multi-dimensional matrix
@@ -24,52 +24,52 @@ public final class Tensor // DoubleTensor
 // s[1] = 4; s[2] = 5; s[3] = 6; s[4] = 2; s[5] = 7; s[6] = 3;
 // x = torch.Tensor(s)
 
-	private int[] size;
-	private double[] storage;
-	private int[] storageOffset;
-	private int[] stride;
-	private int[] dimPermutation;
+    private int[] size;
+    private double[] storage;
+    private int[] storageOffset;
+    private int[] stride;
+    private int[] dimPermutation;
 
-	public Tensor() {
-		size = new int[0];
-		storage = new double[0];
-		storageOffset = new int[1];
-		stride = new int[0];
-		dimPermutation = null;
-	}
+    public Tensor() {
+        size = new int[0];
+        storage = new double[0];
+        storageOffset = new int[1];
+        stride = new int[0];
+        dimPermutation = null;
+    }
 
-	public Tensor(int ... size) {
-		this.size = _copyIntArray(size);
-		stride = _defaultStride(size);
-		storageOffset = new int[size.length + 1];
-		storage = new double[nElement()];
-		dimPermutation = null;
-	}
+    public Tensor(int... size) {
+        this.size = _copyIntArray(size);
+        stride = _defaultStride(size);
+        storageOffset = new int[size.length + 1];
+        storage = new double[nElement()];
+        dimPermutation = null;
+    }
 
-	private static int[] _copyIntArray(int[] array) {
-		if (array == null) return null;
-		int[] array2 = new int[array.length];
-		_copyIntArray(array2, array, 0, array.length, 0);
-		return array2;
-	}
-	
-	private static void _copyIntArray(int[] to, int[] from, int start, int end, int offset) {
-		for (int i = start; i < end; ++ i) {
-			to[i + offset] = from[i];
-		}
-	}
-	
-	private static int[] _defaultStride(int[] size) {
-		int[] stride = new int[size.length];
-		stride[size.length - 1] = 1;
-		for (int i = size.length - 2; i >= 0; -- i) {
-			stride[i] = stride[i + 1] * size[i + 1];
-		}
-		return stride;
-	}
+    private static int[] _copyIntArray(int[] array) {
+        if (array == null) return null;
+        int[] array2 = new int[array.length];
+        _copyIntArray(array2, array, 0, array.length, 0);
+        return array2;
+    }
 
-// The number of dimensions of a Tensor can be queried by nDimension() or dim(). Size of the i-th dimension is returned by size(i). A LongStorage containing all the dimensions can be returned by size().
+    private static void _copyIntArray(int[] to, int[] from, int start, int end, int offset) {
+        for (int i = start; i < end; ++i) {
+            to[i + offset] = from[i];
+        }
+    }
 
+    private static int[] _defaultStride(int[] size) {
+        int[] stride = new int[size.length];
+        stride[size.length - 1] = 1;
+        for (int i = size.length - 2; i >= 0; --i) {
+            stride[i] = stride[i + 1] * size[i + 1];
+        }
+        return stride;
+    }
+
+// The number of dimensions of a Tensor can be queried by nDimension() or dim(). Size of the i-th dimension is returned by size(i).
+// A LongStorage containing all the dimensions can be returned by size().
 // > x:nDimension()
 // 6
 // > x:size()
@@ -82,60 +82,64 @@ public final class Tensor // DoubleTensor
 // [torch.LongStorage of size 6]
 // Internal data representation
 
-	public int[] size() {
-		return _physicalDimension(dimPermutation, size);
-	}
+    public int[] size() {
+        return _physicalDimension(dimPermutation, size);
+    }
 
-	public int size(int dim) {
-		dim = _physicalDimension(dimPermutation, dim);
-		return size[dim - 1];
-	}
+    public int size(int dim) {
+        dim = _physicalDimension(dimPermutation, dim);
+        return size[dim - 1];
+    }
 
-	public int nDimension() {
-		return size.length;
-	}
+    public int nDimension() {
+        return size.length;
+    }
 
-	public int dim() {
-		return size.length;
-	}
+    public int dim() {
+        return size.length;
+    }
 
-	public int[] stride() {
-		return _physicalDimension(dimPermutation, stride);
-	}
+    public int[] stride() {
+        return _physicalDimension(dimPermutation, stride);
+    }
 
-	public int stride(int dim) {
-		dim = _physicalDimension(dimPermutation, dim);
-		return stride[dim - 1];
-	}
+    public int stride(int dim) {
+        dim = _physicalDimension(dimPermutation, dim);
+        return stride[dim - 1];
+    }
 
-	public double[] storage() {
-		return storage;
-	}
-	
-	private static int _physicalDimension(int[] dimPermutation, int dim) {
-		if (dimPermutation == null) return dim;
-		return dimPermutation[dim - 1];
-	}
+    public double[] storage() {
+        return storage;
+    }
 
-	private static int[] _physicalDimension(int[] dimPermutation, int[] dim) {
-		if (dimPermutation == null) return dim;
-		int[] dim2 = new int[dim.length];
-		for (int i = 0; i < dim.length; ++ i) {
-			dim2[i] = dim[dimPermutation[i] - 1];
-		}
-		return dim2;
-	}
+    private static int _physicalDimension(int[] dimPermutation, int dim) {
+        if (dimPermutation == null) return dim;
+        return dimPermutation[dim - 1];
+    }
 
-	private static int[] _permuteIndex(int[] dimPermutation, int[] indexes) {
-		if (dimPermutation == null) return indexes;
-		int[] indexes2 = new int[indexes.length];
-		for (int i = 0; i < indexes.length; ++ i) {
-			indexes2[dimPermutation[i] - 1] = indexes[i];
-		}
-		return indexes2;
-	}
-	
-// The actual data of a Tensor is contained into a Storage. It can be accessed using storage(). While the memory of a Tensor has to be contained in this unique Storage, it might not be contiguous: the first position used in the Storage is given by storageOffset() (starting at 1). And the jump needed to go from one element to another element in the i-th dimension is given by stride(i). In other words, given a 3D tensor
+    private static int[] _physicalDimension(int[] dimPermutation, int[] dim) {
+        if (dimPermutation == null) return dim;
+        int[] dim2 = new int[dim.length];
+        for (int i = 0; i < dim.length; ++i) {
+            dim2[i] = dim[dimPermutation[i] - 1];
+        }
+        return dim2;
+    }
+
+    private static int[] _permuteIndex(int[] dimPermutation, int[] indexes) {
+        if (dimPermutation == null) return indexes;
+        int[] indexes2 = new int[indexes.length];
+        for (int i = 0; i < indexes.length; ++i) {
+            indexes2[dimPermutation[i] - 1] = indexes[i];
+        }
+        return indexes2;
+    }
+
+// The actual data of a Tensor is contained into a Storage. It can be accessed using storage().
+// While the memory of a Tensor has to be contained in this unique Storage, it might not be contiguous:
+// the first position used in the Storage is given by storageOffset() (starting at 1).
+// And the jump needed to go from one element to another element in the i-th dimension is given by stride(i).
+// In other words, given a 3D tensor
 
 // x = torch.Tensor(7,7,7)
 // accessing the element (3,4,5) can be done by
@@ -143,73 +147,71 @@ public final class Tensor // DoubleTensor
 // > x[3][4][5]
 // or equivalently (but slowly!)
 
-	public double get(int... indexes) {
-		return storage[_getOffset(indexes)];
-	}
+    public double get(int... indexes) {
+        return storage[_getOffset(indexes)];
+    }
 
-	public Tensor set(double value, int... indexes) {
-		storage[_getOffset(indexes)] = value;
-		return this;
-	}
+    public Tensor set(double value, int... indexes) {
+        storage[_getOffset(indexes)] = value;
+        return this;
+    }
 
-	private int _getOffset(int[] indexes) {
-		if (size.length != indexes.length) {
-			throw new IllegalArgumentException("The dimension of the given index is " + indexes.length + ", but it should be " + size.length + ".");
-		} 
-		indexes = _permuteIndex(dimPermutation, indexes);
-		int index = 0;
-		for (int i = 0; i < size.length; ++ i) {
-			if (indexes[i] <= 0 || indexes[i] > size[i]) {
-				throw new IndexOutOfBoundsException();
-			}
-			index += storageOffset[i] + stride[i] * (indexes[i] - 1);
-		}
-		return index + storageOffset[size.length];
-	}
+    private int _getOffset(int[] indexes) {
+        if (size.length != indexes.length) {
+            throw new IllegalArgumentException("The dimension of the given index is " + indexes.length + ", but it should be " + size.length + ".");
+        }
+        indexes = _permuteIndex(dimPermutation, indexes);
+        int index = 0;
+        for (int i = 0; i < size.length; ++i) {
+            if (indexes[i] <= 0 || indexes[i] > size[i]) {
+                throw new IndexOutOfBoundsException();
+            }
+            index += storageOffset[i] + stride[i] * (indexes[i] - 1);
+        }
+        return index + storageOffset[size.length];
+    }
 
-	public String toString() {
-		java.text.DecimalFormat decimal = new java.text.DecimalFormat("#.####");
-		StringBuffer buf = new StringBuffer();
-		if (dim() == 1) {
-			for (int i = 1; i <= size(1); ++ i) {
-				buf.append(decimal.format(get(i)) + "\n");
-			}
-		}
-		else if (dim() == 2) {
-			for (int i = 1; i <= size(1); ++ i) {
-				for (int j = 1; j <= size(2); ++ j) {
-					buf.append(decimal.format(get(i, j)) + "\t");
-				}
-				buf.append("\n");
-			}
-		}
-		else {
-			buf.append(_toString(new java.util.ArrayList<Integer>()));
-		}
-		return buf.toString();
-	}
-	
-	private String _toString(java.util.ArrayList<Integer> indexes1) {
-		StringBuffer buf = new StringBuffer();
-		if (dim() == 2) {
-			buf.append("(");
-			for (Integer index : indexes1) buf.append(index + ",");
-			buf.append(".,.) = \n");
-			buf.append(toString());
-		}
-		else {
-			for (int i = 1; i <= size(1); ++ i) {
-				java.util.ArrayList<Integer> indexes2 = new java.util.ArrayList<>(indexes1);
-				indexes2.add(i);
-				buf.append(select(1, i)._toString(indexes2) + "\n");
-			}
-		}
-		return buf.toString();
-	}
-	
+    public String toString() {
+        java.text.DecimalFormat decimal = new java.text.DecimalFormat("#.####");
+        StringBuffer buf = new StringBuffer();
+        if (dim() == 1) {
+            for (int i = 1; i <= size(1); ++i) {
+                buf.append(decimal.format(get(i)) + "\n");
+            }
+        } else if (dim() == 2) {
+            for (int i = 1; i <= size(1); ++i) {
+                for (int j = 1; j <= size(2); ++j) {
+                    buf.append(decimal.format(get(i, j)) + "\t");
+                }
+                buf.append("\n");
+            }
+        } else {
+            buf.append(_toString(new java.util.ArrayList<Integer>()));
+        }
+        return buf.toString();
+    }
+
+    private String _toString(java.util.ArrayList<Integer> indexes1) {
+        StringBuffer buf = new StringBuffer();
+        if (dim() == 2) {
+            buf.append("(");
+            for (Integer index : indexes1) buf.append(index + ",");
+            buf.append(".,.) = \n");
+            buf.append(toString());
+        } else {
+            for (int i = 1; i <= size(1); ++i) {
+                java.util.ArrayList<Integer> indexes2 = new java.util.ArrayList<>(indexes1);
+                indexes2.add(i);
+                buf.append(select(1, i)._toString(indexes2) + "\n");
+            }
+        }
+        return buf.toString();
+    }
+
 // > x:storage()[x:storageOffset()
 // +(3-1)*x:stride(1)+(4-1)*x:stride(2)+(5-1)*x:stride(3)]
-// One could say that a Tensor is a particular way of viewing a Storage: a Storage only represents a chunk of memory, while the Tensor interprets this chunk of memory as having dimensions:
+// One could say that a Tensor is a particular way of viewing a Storage: a Storage only represents a chunk of memory,
+// while the Tensor interprets this chunk of memory as having dimensions:
 
 // x = torch.Tensor(4,5)
 // s = x:storage()
@@ -232,53 +234,52 @@ public final class Tensor // DoubleTensor
 // return i
 // end)
 
-	public Tensor apply(java.util.function.Supplier<Double> supplier) {
-		int nel = nElement();
-		TensorIndexesIterator iitx = new TensorIndexesIterator(this);
-		for (int i = 0; i < nel; ++ i) {
-			int[] ix = iitx.next();
-			set(supplier.get(), ix);
-		}
-		return this;
-	}
-	
-	public Tensor apply(java.util.function.Function<Double, Double> function) {
-		int nel = nElement();
-		TensorIndexesIterator iitx = new TensorIndexesIterator(this);
-		for (int i = 0; i < nel; ++ i) {
-			int[] ix = iitx.next();
-			double x1 = get(ix);
-			set(function.apply(x1), ix);
-		}
-		return this;
-	}
+    public Tensor apply(java.util.function.Supplier<Double> supplier) {
+        int nel = nElement();
+        TensorIndexesIterator iitx = new TensorIndexesIterator(this);
+        for (int i = 0; i < nel; ++i) {
+            int[] ix = iitx.next();
+            set(supplier.get(), ix);
+        }
+        return this;
+    }
 
-	public static void reduce(Tensor x, java.util.function.Consumer<Double> consumer) {
-		int nel = x.nElement();
-		TensorIndexesIterator iitx = new TensorIndexesIterator(x);
-		for (int i = 0; i < nel; ++ i) {
-			consumer.accept(x.get(iitx.next()));
-		}
-	}
+    public Tensor apply(java.util.function.Function<Double, Double> function) {
+        int nel = nElement();
+        TensorIndexesIterator iitx = new TensorIndexesIterator(this);
+        for (int i = 0; i < nel; ++i) {
+            int[] ix = iitx.next();
+            double x1 = get(ix);
+            set(function.apply(x1), ix);
+        }
+        return this;
+    }
 
-	@FunctionalInterface
-	interface Consumer2 <T1, T2>
-	{
-		public void accept(T1 t1, T2 t2);
-	}
+    public static void reduce(Tensor x, java.util.function.Consumer<Double> consumer) {
+        int nel = x.nElement();
+        TensorIndexesIterator iitx = new TensorIndexesIterator(x);
+        for (int i = 0; i < nel; ++i) {
+            consumer.accept(x.get(iitx.next()));
+        }
+    }
 
-	public static void reduce(Tensor x, Tensor y, Consumer2<Double, Double> consumer2) {
-		int nel = x.nElement();
-		if (nel != y.nElement()) {
-			throw new IllegalArgumentException("Number of elements do not agree.");
-		}
-		TensorIndexesIterator iitx = new TensorIndexesIterator(x);
-		TensorIndexesIterator iity = new TensorIndexesIterator(y);
-		for (int i = 0; i < nel; ++ i) {
-			consumer2.accept(x.get(iitx.next()), y.get(iity.next()));
-		}
-	}
-	
+    @FunctionalInterface
+    interface Consumer2<T1, T2> {
+        public void accept(T1 t1, T2 t2);
+    }
+
+    public static void reduce(Tensor x, Tensor y, Consumer2<Double, Double> consumer2) {
+        int nel = x.nElement();
+        if (nel != y.nElement()) {
+            throw new IllegalArgumentException("Number of elements do not agree.");
+        }
+        TensorIndexesIterator iitx = new TensorIndexesIterator(x);
+        TensorIndexesIterator iity = new TensorIndexesIterator(y);
+        for (int i = 0; i < nel; ++i) {
+            consumer2.accept(x.get(iitx.next()), y.get(iity.next()));
+        }
+    }
+
 // > x
 // 1   2   3   4   5
 // 6   7   8   9  10
@@ -306,14 +307,17 @@ public final class Tensor // DoubleTensor
 
 // Default Tensor type
 
-// For convenience, an alias torch.Tensor is provided, which allows the user to write type-independent scripts, which can then ran after choosing the desired Tensor type with a call like
+// For convenience, an alias torch.Tensor is provided, which allows the user to write type-independent scripts,
+// which can then ran after choosing the desired Tensor type with a call like
 
 // torch.setdefaulttensortype('torch.FloatTensor')
 // See torch.setdefaulttensortype for more details. By default, the alias "points" on torch.DoubleTensor.
 
 // Efficient memory management
 
-// All tensor operations in this class do not make any memory copy. All these methods transform the existing tensor, or return a new tensor referencing the same storage. This magical behavior is internally obtained by good usage of the stride() and storageOffset(). Example:
+// All tensor operations in this class do not make any memory copy. All these methods transform the existing tensor,
+// or return a new tensor referencing the same storage. This magical behavior is internally obtained by good usage of the stride() and storageOffset().
+// Example:
 
 // x = torch.Tensor(5):zero()
 // > x
@@ -334,31 +338,33 @@ public final class Tensor // DoubleTensor
 // [torch.Tensor of dimension 5]
 // If you really need to copy a Tensor, you can use the copy() method:
 
-	public Tensor fill(double value) {
-		return apply(() -> value);
-	}
+    public Tensor fill(double value) {
+        return apply(() -> value);
+    }
 
 // y = torch.Tensor(x:size()):copy(x)
 // Or the convenience method
 
-	public Tensor copy(Tensor that) {
-		return map(that, (x, y) -> y);
-	}
-	
+    public Tensor copy(Tensor that) {
+        return map(that, (x, y) -> y);
+    }
+
 // y = x:clone()
 
-	public Tensor clone() {
-		Tensor that = new Tensor(this.size());
-		that.copy(this);
-		return that;
-	}
+    public Tensor clone() {
+        Tensor that = new Tensor(this.size());
+        that.copy(this);
+        return that;
+    }
 
 // We now describe all the methods for Tensor. If you want to specify the Tensor type, just replace Tensor by the name of the Tensor variant (like CharTensor).
 
 
 // Tensor constructors
 
-// Tensor constructors, create new Tensor object, optionally, allocating new memory. By default the elements of a newly allocated memory are not initialized, therefore, might contain arbitrary numbers. Here are several ways to construct a new Tensor.
+// Tensor constructors, create new Tensor object, optionally, allocating new memory.
+// By default the elements of a newly allocated memory are not initialized, therefore, might contain arbitrary numbers.
+// Here are several ways to construct a new Tensor.
 
 
 // torch.Tensor()
@@ -370,11 +376,12 @@ public final class Tensor // DoubleTensor
 
 // Returns a new tensor which reference the same Storage than the given tensor. The size, stride, and storage offset are the same than the given tensor.
 
-// The new Tensor is now going to "view" the same storage as the given tensor. As a result, any modification in the elements of the Tensor will have a impact on the elements of the given tensor, and vice-versa. No memory copy!
+// The new Tensor is now going to "view" the same storage as the given tensor.
+// As a result, any modification in the elements of the Tensor will have a impact on the elements of the given tensor, and vice-versa. No memory copy!
 
-	public Tensor(Tensor t) {
-		set(t);
-	}
+    public Tensor(Tensor t) {
+        set(t);
+    }
 
 // x = torch.Tensor(2,5):fill(3.14)
 // > x
@@ -399,34 +406,36 @@ public final class Tensor // DoubleTensor
 // Create a tensor up to 4 dimensions. The tensor size will be sz1 x sz2 x sx3 x sz4.
 
 
-// torch.Tensor(sizes, [strides])
-	public Tensor(int[] size, int[] stride) {
-		// negative strides : mean to choose the right strides
-		this.size = _copyIntArray(size);
-		this.stride = _copyIntArray(stride);
-		storage = new double[_storageSizeAndStride(size, this.stride)];
-		storageOffset = new int[size.length + 1];
-		dimPermutation = null;
-	}
-	
-	static int _storageSizeAndStride(int[] size, int[] stride) {
-		int[] storageSize = new int[size.length + 1];
-		storageSize[size.length] = 1;
-		for (int i = size.length - 1; i >= 0; -- i) {
-			if (stride[i] < 0) {
-				if (i == size.length - 1) {
-					stride[i] = 1;
-				}
-				else {
-					stride[i] = size[i + 1] * stride[i + 1];
-				}
-			}
-			storageSize[i] = (size[i] - 1) * stride[i] + storageSize[i + 1];
-		}
-		return storageSize[0];
-	}
+    // torch.Tensor(sizes, [strides])
+    public Tensor(int[] size, int[] stride) {
+        // negative strides : mean to choose the right strides
+        this.size = _copyIntArray(size);
+        this.stride = _copyIntArray(stride);
+        storage = new double[_storageSizeAndStride(size, this.stride)];
+        storageOffset = new int[size.length + 1];
+        dimPermutation = null;
+    }
 
-// Create a tensor of any number of dimensions. The LongStorage sizes gives the size in each dimension of the tensor. The optional LongStorage strides gives the jump necessary to go from one element to the next one in the each dimension. Of course, sizes and strides must have the same number of elements. If not given, or if some elements of strides are negative, the stride() will be computed such that the tensor is as contiguous as possible in memory.
+    static int _storageSizeAndStride(int[] size, int[] stride) {
+        int[] storageSize = new int[size.length + 1];
+        storageSize[size.length] = 1;
+        for (int i = size.length - 1; i >= 0; --i) {
+            if (stride[i] < 0) {
+                if (i == size.length - 1) {
+                    stride[i] = 1;
+                } else {
+                    stride[i] = size[i + 1] * stride[i + 1];
+                }
+            }
+            storageSize[i] = (size[i] - 1) * stride[i] + storageSize[i + 1];
+        }
+        return storageSize[0];
+    }
+
+// Create a tensor of any number of dimensions. The LongStorage sizes gives the size in each dimension of the tensor.
+// The optional LongStorage strides gives the jump necessary to go from one element to the next one in the each dimension.
+// Of course, sizes and strides must have the same number of elements.
+// If not given, or if some elements of strides are negative, the stride() will be computed such that the tensor is as contiguous as possible in memory.
 
 // Example, create a 4D 4x4x3x2 tensor:
 
@@ -441,7 +450,8 @@ public final class Tensor // DoubleTensor
 // 1
 // 1
 // [torch.DoubleTensor of dimension 4]
-// Note that negative strides are not allowed, and, if given as argument when constructing the Tensor, will be interpreted as //choose the right stride such that the Tensor is contiguous in memory//.
+// Note that negative strides are not allowed, and, if given as argument when constructing the Tensor,
+// will be interpreted as //choose the right stride such that the Tensor is contiguous in memory//.
 
 // Note this method cannot be used to create torch.LongTensors. The constructor from a storage will be used:
 
@@ -464,11 +474,13 @@ public final class Tensor // DoubleTensor
 
 // torch.Tensor(storage, [storageOffset, sizes, [strides]])
 
-// Returns a tensor which uses the existing Storage storage, starting at position storageOffset (>=1). The size of each dimension of the tensor is given by the LongStorage sizes.
+// Returns a tensor which uses the existing Storage storage, starting at position storageOffset (>=1).
+// The size of each dimension of the tensor is given by the LongStorage sizes.
 
 // If only storage is provided, it will create a 1D Tensor viewing the all Storage.
 
-// The jump necessary to go from one element to the next one in each dimension is given by the optional argument LongStorage strides. If not given, or if some elements of strides are negative, the stride() will be computed such that the tensor is as contiguous as possible in memory.
+// The jump necessary to go from one element to the next one in each dimension is given by the optional argument LongStorage strides.
+// If not given, or if some elements of strides are negative, the stride() will be computed such that the tensor is as contiguous as possible in memory.
 
 // Any modification in the elements of the Storage will have an impact on the elements of the new Tensor, and vice-versa. There is no memory copy!
 
@@ -498,12 +510,14 @@ public final class Tensor // DoubleTensor
 
 // torch.Tensor(storage, [storageOffset, sz1 [, st1 ... [, sz4 [, st4]]]])
 
-// Convenience constructor (for the previous constructor) assuming a number of dimensions inferior or equal to 4. szi is the size in the i-th dimension, and sti is the stride in the i-th dimension.
+// Convenience constructor (for the previous constructor) assuming a number of dimensions inferior or equal to 4.
+// szi is the size in the i-th dimension, and sti is the stride in the i-th dimension.
 
 
 // torch.Tensor(table)
 
-// The argument is assumed to be a Lua array of numbers. The constructor returns a new Tensor of the size of the table, containing all the table elements. The table might be multi-dimensional.
+// The argument is assumed to be a Lua array of numbers. The constructor returns a new Tensor of the size of the table, containing all the table elements.
+// The table might be multi-dimensional.
 
 // Example:
 
@@ -512,71 +526,78 @@ public final class Tensor // DoubleTensor
 // 5  6  7  8
 // [torch.DoubleTensor of dimension 2x4]
 // A note on function calls
-	
-	public Tensor copy(double[] y) {
-		int nel = nElement();
-		if (nel != y.length) {
-			throw new IllegalArgumentException("Number of elements do not agree.");
-		}
-		TensorIndexesIterator iitx = new TensorIndexesIterator(this);
-		for (int i = 0; i < y.length; ++ i) {
-			int[] ix = iitx.next();
-			double x1 = get(ix);
-			set(y[i], ix);
-		}
-		return this;
-	}
-	
-	public Tensor copy(double[][] y) {
-		int nel = nElement();
-		if (nel != y.length * y[0].length) {
-			throw new IllegalArgumentException("Number of elements do not agree.");
-		}
-		TensorIndexesIterator iitx = new TensorIndexesIterator(this);
-		for (int i = 0; i < y.length; ++ i) {
-			for (int j = 0; j < y[0].length; ++ j) {
-				int[] ix = iitx.next();
-				double x1 = get(ix);
-				set(y[i][j], ix);
-			}
-		}
-		return this;
-	}
-	
-	public Tensor copy(double[][][] y) {
-		int nel = nElement();
-		if (nel != y.length * y[0].length * y[0][0].length) {
-			throw new IllegalArgumentException("Number of elements do not agree.");
-		}
-		TensorIndexesIterator iitx = new TensorIndexesIterator(this);
-		for (int i = 0; i < y.length; ++ i) {
-			for (int j = 0; j < y[0].length; ++ j) {
-				for (int k = 0; k < y[0][0].length; ++ k) {
-					int[] ix = iitx.next();
-					double x1 = get(ix);
-					set(y[i][j][k], ix);
-				}
-			}
-		}
-		return this;
-	}
-	
-	public Tensor(double[] values) {
-		this(values.length);
-		copy(values);
-	}
 
-	public Tensor(double[][] values) {
-		this(values.length, values[0].length);
-		copy(values);
-	}
+    public Tensor copy(double[] y) {
+        int nel = nElement();
+        if (nel != y.length) {
+            throw new IllegalArgumentException("Number of elements do not agree.");
+        }
+        TensorIndexesIterator iitx = new TensorIndexesIterator(this);
+        for (int i = 0; i < y.length; ++i) {
+            int[] ix = iitx.next();
+            double x1 = get(ix);
+            set(y[i], ix);
+        }
+        return this;
+    }
 
-	public Tensor(double[][][] values) {
-		this(values.length, values[0].length, values[0][0].length);
-		copy(values);
-	}
+    public Tensor copy(double[][] y) {
+        int nel = nElement();
+        if (nel != y.length * y[0].length) {
+            throw new IllegalArgumentException("Number of elements do not agree.");
+        }
+        TensorIndexesIterator iitx = new TensorIndexesIterator(this);
+        for (int i = 0; i < y.length; ++i) {
+            for (int j = 0; j < y[0].length; ++j) {
+                int[] ix = iitx.next();
+                double x1 = get(ix);
+                set(y[i][j], ix);
+            }
+        }
+        return this;
+    }
 
-// The rest of this guide will present many functions that can be used to manipulate tensors. Most functions have been defined so that they can be called flexibly, either in an object-oriented "method call" style i.e. src:function(...) or a more "functional" style torch.function(src, ...), where src is a tensor. Note that these different invocations may differ in whether they modify the tensor in-place, or create a new tensor. Additionally, some functions can be called in the form dst:function(src, ...) which usually suggests that the result of the operation on the src tensor will be stored in the tensor dst. Further details are given in the individual function definitions, below, but it should be noted that the documentation is currently incomplete in this regard, and readers are encouraged to experiment in an interactive session.
+    public Tensor copy(double[][][] y) {
+        int nel = nElement();
+        if (nel != y.length * y[0].length * y[0][0].length) {
+            throw new IllegalArgumentException("Number of elements do not agree.");
+        }
+        TensorIndexesIterator iitx = new TensorIndexesIterator(this);
+        for (int i = 0; i < y.length; ++i) {
+            for (int j = 0; j < y[0].length; ++j) {
+                for (int k = 0; k < y[0][0].length; ++k) {
+                    int[] ix = iitx.next();
+                    double x1 = get(ix);
+                    set(y[i][j][k], ix);
+                }
+            }
+        }
+        return this;
+    }
+
+    public Tensor(double[] values) {
+        this(values.length);
+        copy(values);
+    }
+
+    public Tensor(double[][] values) {
+        this(values.length, values[0].length);
+        copy(values);
+    }
+
+    public Tensor(double[][][] values) {
+        this(values.length, values[0].length, values[0][0].length);
+        copy(values);
+    }
+
+// The rest of this guide will present many functions that can be used to manipulate tensors.
+// Most functions have been defined so that they can be called flexibly, either in an object-oriented "method call" style
+// i.e. src:function(...) or a more "functional" style torch.function(src, ...), where src is a tensor.
+// Note that these different invocations may differ in whether they modify the tensor in-place, or create a new tensor.
+// Additionally, some functions can be called in the form dst:function(src, ...)
+// which usually suggests that the result of the operation on the src tensor will be stored in the tensor dst.
+// Further details are given in the individual function definitions,
+// below, but it should be noted that the documentation is currently incomplete in this regard, and readers are encouraged to experiment in an interactive session.
 
 // Cloning
 
@@ -664,22 +685,22 @@ public final class Tensor // DoubleTensor
 // 2  2  2
 // [torch.DoubleTensor of dimension 2x3]
 
-	static boolean _compareIntArrays(int[] array1, int[] array2) {
-		if (array1.length != array2.length) return false;
-		for (int i = 0; i < array1.length; ++ i) {
-			if (array1[i] != array2[i]) return false;
-		}
-		return true;
-	}
+    static boolean _compareIntArrays(int[] array1, int[] array2) {
+        if (array1.length != array2.length) return false;
+        for (int i = 0; i < array1.length; ++i) {
+            if (array1[i] != array2[i]) return false;
+        }
+        return true;
+    }
 
-	public boolean isContiguous() {
-		return _compareIntArrays(stride, _defaultStride(size)) && dimPermutation == null;
-	}
+    public boolean isContiguous() {
+        return _compareIntArrays(stride, _defaultStride(size)) && dimPermutation == null;
+    }
 
-	public Tensor contiguous() {
-		if (isContiguous()) return this;
-		return this.clone();
-	}
+    public Tensor contiguous() {
+        if (isContiguous()) return this;
+        return this.clone();
+    }
 
 // [Tensor or string] type(type)
 
@@ -712,7 +733,8 @@ public final class Tensor // DoubleTensor
 // 0
 // 0
 // [torch.DoubleTensor of dimension 3]
-// If type is a string describing a Tensor type, different from the type name of the given Tensor, returns a new Tensor of the specified type, whose contents corresponds to the contents of the original Tensor, casted to the given type (//memory copy occurs, with possible loss of precision//).
+// If type is a string describing a Tensor type, different from the type name of the given Tensor, returns a new Tensor of the specified type,
+// whose contents corresponds to the contents of the original Tensor, casted to the given type (//memory copy occurs, with possible loss of precision//).
 
 // x = torch.Tensor(3):fill(3.14)
 // > x
@@ -923,9 +945,9 @@ public final class Tensor // DoubleTensor
 // > x:isSize(x:size())
 // true
 
-	public boolean isSize(int... size) {
-		return _compareIntArrays(size(), size);
-	}
+    public boolean isSize(int... size) {
+        return _compareIntArrays(size(), size);
+    }
 
 // [boolean] isSameSizeAs(tensor)
 
@@ -940,9 +962,9 @@ public final class Tensor // DoubleTensor
 // > x:isSameSizeAs(y)
 // false
 
-	public boolean isSameSizeAs(Tensor that) {
-		return _compareIntArrays(size(), that.size());
-	}
+    public boolean isSameSizeAs(Tensor that) {
+        return _compareIntArrays(size(), that.size());
+    }
 
 // [number] nElement()
 
@@ -952,45 +974,48 @@ public final class Tensor // DoubleTensor
 // > x:nElement() -- 4x5 = 20!
 // 20
 
-	public int nElement() {
-		return _totalSize(size);
-	}
+    public int nElement() {
+        return _totalSize(size);
+    }
 
-	static int _totalSize(int[] size) {
-		int elements = size[0];
-		for (int i = 1; i < size.length; ++ i) {
-			elements *= size[i];
-		}
-		return elements;
-	}
+    static int _totalSize(int[] size) {
+        int elements = size[0];
+        for (int i = 1; i < size.length; ++i) {
+            elements *= size[i];
+        }
+        return elements;
+    }
 
 // [number] storageOffset()
 
 // Return the first index (starting at 1) used in the tensor's storage.
 
-	public int storageOffset() {
-		return _sumIntArray(storageOffset);
-	}
+    public int storageOffset() {
+        return _sumIntArray(storageOffset);
+    }
 
-	private static int _sumIntArray(int[] array) {
-		int sum = 0;
-		for (int i = 0; i < array.length; ++ i) {
-			sum += array[i];
-		}
-		return sum;
-	}
+    private static int _sumIntArray(int[] array) {
+        int sum = 0;
+        for (int i = 0; i < array.length; ++i) {
+            sum += array[i];
+        }
+        return sum;
+    }
 
 // Querying elements
 
 // Elements of a tensor can be retrieved with the [index] operator.
 
-// If index is a number, [index] operator is equivalent to a select(1, index). If the tensor has more than one dimension, this operation returns a slice of the tensor that shares the same underlying storage. If the tensor is a 1D tensor, it returns the value at index in this tensor.
+// If index is a number, [index] operator is equivalent to a select(1, index).
+// If the tensor has more than one dimension, this operation returns a slice of the tensor that shares the same underlying storage.
+// If the tensor is a 1D tensor, it returns the value at index in this tensor.
 
 // If index is a table, the table must contain n numbers, where n is the number of dimensions of the Tensor. It will return the element at the given position.
 
 // In the same spirit, index might be a LongStorage, specifying the position (in the Tensor) of the element to be retrieved.
 
-// If index is a ByteTensor in which each element is 0 or 1 then it acts as a selection mask used to extract a subset of the original tensor. This is particularly useful with logical operators like torch.le.
+// If index is a ByteTensor in which each element is 0 or 1 then it acts as a selection mask used to extract a subset of the original tensor.
+// This is particularly useful with logical operators like torch.le.
 
 // Example:
 
@@ -1023,25 +1048,25 @@ public final class Tensor // DoubleTensor
 // 3
 // [torch.DoubleTensor of dimension 3]
 
-	public Tensor get(int[] ... ranges) {
-		if (ranges.length != dim()) {
-			throw new IllegalArgumentException("Wrong number of dimensions.");
-		}
-		Tensor t = this;
-		for (int i = 1; i <= ranges.length; ++ i) {
-			int from = 1;
-			int to = size(i);
-			if (ranges[i - 1].length == 1) {
-				from = (ranges[i - 1][0] < 0 ? size(i) : ranges[i - 1][0]);
-				to = from;
-			}
-			if (ranges[i - 1].length == 2) {
-				to = (ranges[i - 1][1] < 0 ? size(i) : ranges[i - 1][1]);
-			}
-			t = t.narrow(i, from, to - from + 1);
-		}
-		return t;
-	}
+    public Tensor get(int[]... ranges) {
+        if (ranges.length != dim()) {
+            throw new IllegalArgumentException("Wrong number of dimensions.");
+        }
+        Tensor t = this;
+        for (int i = 1; i <= ranges.length; ++i) {
+            int from = 1;
+            int to = size(i);
+            if (ranges[i - 1].length == 1) {
+                from = (ranges[i - 1][0] < 0 ? size(i) : ranges[i - 1][0]);
+                to = from;
+            }
+            if (ranges[i - 1].length == 2) {
+                to = (ranges[i - 1][1] < 0 ? size(i) : ranges[i - 1][1]);
+            }
+            t = t.narrow(i, from, to - from + 1);
+        }
+        return t;
+    }
 
 // Referencing a tensor to an existing tensor or chunk of memory
 
@@ -1059,7 +1084,9 @@ public final class Tensor // DoubleTensor
 
 // [self] set(tensor)
 
-// The Tensor is now going to "view" the same storage as the given tensor. As the result, any modification in the elements of the Tensor will have an impact on the elements of the given tensor, and vice-versa. This is an efficient method, as there is no memory copy!
+// The Tensor is now going to "view" the same storage as the given tensor.
+// As the result, any modification in the elements of the Tensor will have an impact on the elements of the given tensor, and vice-versa.
+// This is an efficient method, as there is no memory copy!
 
 // x = torch.Tensor(2,5):fill(3.14)
 // > x
@@ -1079,18 +1106,20 @@ public final class Tensor // DoubleTensor
 // 0 0 0 0 0
 // [torch.DoubleTensor of dimension 2x5]
 
-	public Tensor set(Tensor that) {
-		storage = that.storage;
-		storageOffset = _copyIntArray(that.storageOffset);
-		size = _copyIntArray(that.size);
-		stride = _copyIntArray(that.stride);
-		dimPermutation = _copyIntArray(that.dimPermutation);
-		return this;
-	}
+    public Tensor set(Tensor that) {
+        storage = that.storage;
+        storageOffset = _copyIntArray(that.storageOffset);
+        size = _copyIntArray(that.size);
+        stride = _copyIntArray(that.stride);
+        dimPermutation = _copyIntArray(that.dimPermutation);
+        return this;
+    }
 
 // [self] set(storage, [storageOffset, sizes, [strides]])
 
-// The Tensor is now going to "view" the given storage, starting at position storageOffset (>=1) with the given dimension sizes and the optional given strides. As the result, any modification in the elements of the Storage will have a impact on the elements of the Tensor, and vice-versa. This is an efficient method, as there is no memory copy!
+// The Tensor is now going to "view" the given storage, starting at position storageOffset (>=1) with the given dimension sizes and the optional given strides.
+// As the result, any modification in the elements of the Storage will have a impact on the elements of the Tensor, and vice-versa.
+// This is an efficient method, as there is no memory copy!
 
 // If only storage is provided, the whole storage will be viewed as a 1D Tensor.
 
@@ -1175,7 +1204,8 @@ public final class Tensor // DoubleTensor
 
 // When resizing to a smaller size, the underlying Storage is not resized.
 
-// Important note: the content of a Tensor after resizing is undetermined as strides might have been completely changed. In particular, the elements of the resized tensor are contiguous in memory.
+// Important note: the content of a Tensor after resizing is undetermined as strides might have been completely changed.
+// In particular, the elements of the resized tensor are contiguous in memory.
 
 
 // [self] resizeAs(tensor)
@@ -1194,23 +1224,24 @@ public final class Tensor // DoubleTensor
 
 // Extracting sub-tensors
 
-// Each of these methods returns a Tensor which is a sub-tensor of the given tensor, with the same Storage. Hence, any modification in the memory of the sub-tensor will have an impact on the primary tensor, and vice-versa.
+// Each of these methods returns a Tensor which is a sub-tensor of the given tensor, with the same Storage.
+// Hence, any modification in the memory of the sub-tensor will have an impact on the primary tensor, and vice-versa.
 
 // These methods are very fast, as they do not involve any memory copy.
 
 
 // [self] narrow(dim, index, size)
-	
-	public Tensor narrow(int dim, int index, int size) {
-		dim = _physicalDimension(dimPermutation, dim);
-		Tensor t = new Tensor(this);
-		if (index <= 0 || index > t.size[dim - 1]) throw new IndexOutOfBoundsException();
-		if (size <= 0) throw new IllegalArgumentException("'size' must be positive.");
-		if (index + size - 1 > t.size[dim - 1]) throw new IndexOutOfBoundsException();
-		t.storageOffset[dim - 1] += (index - 1) * t.stride[dim - 1];
-		t.size[dim - 1] = size;
-		return t;
-	}
+
+    public Tensor narrow(int dim, int index, int size) {
+        dim = _physicalDimension(dimPermutation, dim);
+        Tensor t = new Tensor(this);
+        if (index <= 0 || index > t.size[dim - 1]) throw new IndexOutOfBoundsException();
+        if (size <= 0) throw new IllegalArgumentException("'size' must be positive.");
+        if (index + size - 1 > t.size[dim - 1]) throw new IndexOutOfBoundsException();
+        t.storageOffset[dim - 1] += (index - 1) * t.stride[dim - 1];
+        t.size[dim - 1] = size;
+        return t;
+    }
 
 // Returns a new Tensor which is a narrowed version of the current one: the dimension dim is narrowed from index to index+size-1.
 
@@ -1242,7 +1273,9 @@ public final class Tensor // DoubleTensor
 
 // [Tensor] sub(dim1s, dim1e ... [, dim4s [, dim4e]])
 
-// This method is equivalent to do a series of narrow up to the first 4 dimensions. It returns a new Tensor which is a sub-tensor going from index dimis to dimie in the i-th dimension. Negative values are interpreted index starting from the end: -1 is the last index, -2 is the index before the last index, ...
+// This method is equivalent to do a series of narrow up to the first 4 dimensions.
+// It returns a new Tensor which is a sub-tensor going from index dimis to dimie in the i-th dimension.
+// Negative values are interpreted index starting from the end: -1 is the last index, -2 is the index before the last index, ...
 
 // x = torch.Tensor(5, 6):zero()
 // > x
@@ -1293,26 +1326,27 @@ public final class Tensor // DoubleTensor
 // > y:sub(-1, -1, 3, 4)      -- negative values = bounds
 // 2  2
 // [torch.DoubleTensor of dimension 1x2]
-	
-	public Tensor sub(int... ranges) {
-		if (ranges.length % 2 != 0) {
-			throw new IllegalArgumentException("# of arguments should be even.");
-		}
-		if (ranges.length / 2 > dim()) {
-			throw new IllegalArgumentException("Too many arguments.");
-		}
-		Tensor t = this;
-		for (int i = 1; i <= ranges.length / 2; ++ i) {
-			if (ranges[i * 2 - 2] < 0) ranges[i * 2 - 2] = size(i);
-			if (ranges[i * 2 - 1] < 0) ranges[i * 2 - 1] = size(i);
-			t = t.narrow(i, ranges[i * 2 - 2], ranges[i * 2 - 1] - ranges[i * 2 - 2] + 1);
-		}
-		return t;
-	}
+
+    public Tensor sub(int... ranges) {
+        if (ranges.length % 2 != 0) {
+            throw new IllegalArgumentException("# of arguments should be even.");
+        }
+        if (ranges.length / 2 > dim()) {
+            throw new IllegalArgumentException("Too many arguments.");
+        }
+        Tensor t = this;
+        for (int i = 1; i <= ranges.length / 2; ++i) {
+            if (ranges[i * 2 - 2] < 0) ranges[i * 2 - 2] = size(i);
+            if (ranges[i * 2 - 1] < 0) ranges[i * 2 - 1] = size(i);
+            t = t.narrow(i, ranges[i * 2 - 2], ranges[i * 2 - 1] - ranges[i * 2 - 2] + 1);
+        }
+        return t;
+    }
 
 // [Tensor] select(dim, index)
 
-// Returns a new Tensor which is a tensor slice at the given index in the dimension dim. The returned tensor has one less dimension: the dimension dim is removed. As a result, it is not possible to select() on a 1D tensor.
+// Returns a new Tensor which is a tensor slice at the given index in the dimension dim.
+// The returned tensor has one less dimension: the dimension dim is removed. As a result, it is not possible to select() on a 1D tensor.
 
 // Note that "selecting" on the first dimension is equivalent to use the [] operator
 
@@ -1359,38 +1393,38 @@ public final class Tensor // DoubleTensor
 // 0  0  0  0  5  0
 // 0  0  0  0  5  0
 // [torch.DoubleTensor of dimension 5x6]
-	
-	public Tensor select(int dim, int index) {
-		Tensor t = narrow(dim, index, 1);
-		
-		int dim0 = dim;
-		dim = _physicalDimension(dimPermutation, dim);
-		t.storageOffset[dim] += t.storageOffset[dim - 1];
-		
-		t.storageOffset = _deleteIntArray(t.storageOffset, dim);
-		t.size = _deleteIntArray(t.size, dim);
-		t.stride = _deleteIntArray(t.stride, dim);
-		t.dimPermutation = _deletePermutation(t.dimPermutation, dim0);
-		return t;
-	}
-	
-	static int[] _deleteIntArray(int[] array, int dim) {
-		int[] array2 = new int[array.length - 1];
-		_copyIntArray(array2, array, 0, dim - 1, 0);
-		_copyIntArray(array2, array, dim, array.length, -1);
-		return array2;
-	}
 
-	static int[] _deletePermutation(int[] dimPermutation, int dim0) {
-		if (dimPermutation == null) return null;
-		int dim = dimPermutation[dim0 - 1];
-		dimPermutation = _deleteIntArray(dimPermutation, dim0);
-		for (int i = 0; i < dimPermutation.length; ++ i) {
-			if (dimPermutation[i] > dim) -- dimPermutation[i];
-		}
-		return _validateDimPermutation(dimPermutation);
-	}
-	
+    public Tensor select(int dim, int index) {
+        Tensor t = narrow(dim, index, 1);
+
+        int dim0 = dim;
+        dim = _physicalDimension(dimPermutation, dim);
+        t.storageOffset[dim] += t.storageOffset[dim - 1];
+
+        t.storageOffset = _deleteIntArray(t.storageOffset, dim);
+        t.size = _deleteIntArray(t.size, dim);
+        t.stride = _deleteIntArray(t.stride, dim);
+        t.dimPermutation = _deletePermutation(t.dimPermutation, dim0);
+        return t;
+    }
+
+    static int[] _deleteIntArray(int[] array, int dim) {
+        int[] array2 = new int[array.length - 1];
+        _copyIntArray(array2, array, 0, dim - 1, 0);
+        _copyIntArray(array2, array, dim, array.length, -1);
+        return array2;
+    }
+
+    static int[] _deletePermutation(int[] dimPermutation, int dim0) {
+        if (dimPermutation == null) return null;
+        int dim = dimPermutation[dim0 - 1];
+        dimPermutation = _deleteIntArray(dimPermutation, dim0);
+        for (int i = 0; i < dimPermutation.length; ++i) {
+            if (dimPermutation[i] > dim) --dimPermutation[i];
+        }
+        return _validateDimPermutation(dimPermutation);
+    }
+
 // [Tensor] [{ dim1,dim2,... }] or [{ {dim1s,dim1e}, {dim2s,dim2e} }]
 
 // The indexing operator [] can be used to combine narrow/sub and select in a concise and efficient way. It can also be used to copy, and fill (sub) tensors.
@@ -1455,7 +1489,9 @@ public final class Tensor // DoubleTensor
 
 // [Tensor] index(dim, index)
 
-// Returns a new Tensor which indexes the original Tensor along dimension dim using the entries in torch.LongTensor index. The returned Tensor has the same number of dimensions as the original Tensor. The returned Tensor does not use the same storage as the original Tensor -- see below for storing the result in an existing Tensor.
+// Returns a new Tensor which indexes the original Tensor along dimension dim using the entries in torch.LongTensor index.
+// The returned Tensor has the same number of dimensions as the original Tensor.
+// The returned Tensor does not use the same storage as the original Tensor -- see below for storing the result in an existing Tensor.
 
 // x = torch.rand(5,5)
 // > x
@@ -1510,7 +1546,8 @@ public final class Tensor // DoubleTensor
 
 // [Tensor] indexCopy(dim, index, tensor)
 
-// Copies the elements of tensor into the original tensor by selecting the indices in the order given in index. The shape of tensor must exactly match the elements indexed or an error will be thrown.
+// Copies the elements of tensor into the original tensor by selecting the indices in the order given in index.
+// The shape of tensor must exactly match the elements indexed or an error will be thrown.
 
 // > x
 // 0.8020  0.7246  0.1204  0.3419  0.4385
@@ -1542,7 +1579,8 @@ public final class Tensor // DoubleTensor
 
 // [Tensor] indexAdd(dim, index, tensor)
 
-// Accumulate the elements of tensor into the original tensor by adding to the indices in the order given in index. The shape of tensor must exactly match the elements indexed or an error will be thrown.
+// Accumulate the elements of tensor into the original tensor by adding to the indices in the order given in index.
+// The shape of tensor must exactly match the elements indexed or an error will be thrown.
 
 // Example 1
 
@@ -1669,7 +1707,9 @@ public final class Tensor // DoubleTensor
 
 // [Tensor] scatter(dim, index, src|val)
 
-// Writes all values from tensor src or the scalar val into self at the specified indices. The indices are specified with respect to the given dimension, dim, in the manner described in gather. Note that, as for gather, the values of index must be between 1 and self:size(dim) inclusive and all values in a row along the specified dimension must be unique.
+// Writes all values from tensor src or the scalar val into self at the specified indices.
+// The indices are specified with respect to the given dimension, dim, in the manner described in gather. Note that, as for gather,
+// the values of index must be between 1 and self:size(dim) inclusive and all values in a row along the specified dimension must be unique.
 
 // x = torch.rand(2, 5)
 // > x
@@ -1692,7 +1732,9 @@ public final class Tensor // DoubleTensor
 
 // [Tensor] maskedSelect(mask)
 
-// Returns a new Tensor which contains all elements aligned to a 1 in the corresponding mask. This mask is a torch.ByteTensor of zeros and ones. The mask and Tensor must have the same number of elements. The resulting Tensor will be a 1D tensor of the same type as Tensor having size mask:sum().
+// Returns a new Tensor which contains all elements aligned to a 1 in the corresponding mask.
+// This mask is a torch.ByteTensor of zeros and ones. The mask and Tensor must have the same number of elements.
+// The resulting Tensor will be a 1D tensor of the same type as Tensor having size mask:sum().
 
 // x = torch.range(1,12):double():resize(3,4)
 // > x
@@ -1729,7 +1771,9 @@ public final class Tensor // DoubleTensor
 
 // [Tensor] maskedCopy(mask, tensor)
 
-// Copies the masked elements of tensor into itself. The masked elements are those elements having a corresponding 1 in the mask Tensor. This mask is a torch.ByteTensor of zeros and ones. The destination Tensor and the mask Tensor should have the same number of elements. The source tensor should have at least as many elements as the number of 1s in the mask.
+// Copies the masked elements of tensor into itself. The masked elements are those elements having a corresponding 1 in the mask Tensor.
+// This mask is a torch.ByteTensor of zeros and ones. The destination Tensor and the mask Tensor should have the same number of elements.
+// The source tensor should have at least as many elements as the number of 1s in the mask.
 
 // x = torch.range(1,4):double():resize(2,2)
 // > x
@@ -1758,7 +1802,8 @@ public final class Tensor // DoubleTensor
 
 // [Tensor] maskedFill(mask, val)
 
-// Fills the masked elements of itself with value val. The masked elements are those elements having a corresponding 1 in the mask Tensor. This mask is a torch.ByteTensor of zeros and ones. The mask and Tensor must have the same number of elements.
+// Fills the masked elements of itself with value val. The masked elements are those elements having a corresponding 1 in the mask Tensor.
+// This mask is a torch.ByteTensor of zeros and ones. The mask and Tensor must have the same number of elements.
 
 // x = torch.range(1,4):double():resize(1,4)
 // > x
@@ -1786,7 +1831,9 @@ public final class Tensor // DoubleTensor
 
 // Finds and returns a LongTensor corresponding to the subscript indices of all non-zero elements in tensor.
 
-// Note that torch uses the first argument on dispatch to determine the return type. Since the first argument is any torch.TensorType, but the return type is always torch.LongTensor, the function call torch.nonzero(torch.LongTensor(), tensor) does not work. However, tensor.nonzero(torch.LongTensor(), tensor) does work.
+// Note that torch uses the first argument on dispatch to determine the return type.
+// Since the first argument is any torch.TensorType, but the return type is always torch.LongTensor, the function call torch.nonzero(torch.LongTensor(), tensor) does not work.
+// However, tensor.nonzero(torch.LongTensor(), tensor) does work.
 
 // > x = torch.rand(4, 4):mul(3):floor():int()
 // > x
@@ -1844,7 +1891,7 @@ public final class Tensor // DoubleTensor
 // 3  4
 // 4  2
 // [torch.LongTensor of dimension 3x2]
-	
+
 // Expanding/Replicating/Squeezing Tensors
 
 // These methods returns a Tensor which is created by replications of the original tensor.
@@ -1911,18 +1958,19 @@ public final class Tensor // DoubleTensor
 // 1
 // 1
 // [torch.DoubleTensor of dimension 10x1]
-	
-	public Tensor expand(int... size) {
-		Tensor t = new Tensor(this);
-		if (t.size.length != size.length) throw new IllegalArgumentException("Wrong number of dimensions.");
-		for (int i = 1; i <= size.length; ++ i) {
-			if (t.size[i - 1] == size[i - 1]) continue;
-			if (t.size[i - 1] != 1) throw new IllegalArgumentException("Attempting to expand along a dimension that does not have size 1.");
-			t.stride[i - 1] = 0;
-			t.size[i - 1] = size[i - 1];
-		}
-		return t;
-	}
+
+    public Tensor expand(int... size) {
+        Tensor t = new Tensor(this);
+        if (t.size.length != size.length) throw new IllegalArgumentException("Wrong number of dimensions.");
+        for (int i = 1; i <= size.length; ++i) {
+            if (t.size[i - 1] == size[i - 1]) continue;
+            if (t.size[i - 1] != 1)
+                throw new IllegalArgumentException("Attempting to expand along a dimension that does not have size 1.");
+            t.stride[i - 1] = 0;
+            t.size[i - 1] = size[i - 1];
+        }
+        return t;
+    }
 
 // i=0; y:apply(function() i=i+1;return i end)
 // > y
@@ -1955,9 +2003,9 @@ public final class Tensor // DoubleTensor
 
 // This is equivalent to self:expand(tensor:size())
 
-	public Tensor expandAs(Tensor that) {
-		return expand(that.size());
-	}
+    public Tensor expandAs(Tensor that) {
+        return expand(that.size());
+    }
 
 // [Tensor] repeatTensor([result,] sizes)
 
@@ -2038,26 +2086,26 @@ public final class Tensor // DoubleTensor
 // [torch.DoubleTensor of dimension 2x2x1x2]
 // Manipulating the tensor view
 
-// Each of these methods returns a Tensor which is another way of viewing the Storage of the given tensor. Hence, any modification in the memory of the sub-tensor will have an impact on the primary tensor, and vice-versa.
+// Each of these methods returns a Tensor which is another way of viewing the Storage of the given tensor.
+// Hence, any modification in the memory of the sub-tensor will have an impact on the primary tensor, and vice-versa.
 
 // These methods are very fast, because they do not involve any memory copy.
-	
-	public Tensor squeeze(int... dim) {
-		if (dim.length == 0) {
-			dim = new int[size.length];
-			for (int i = 0; i < size.length; ++ i) dim[i] = i + 1;
-		}
-		else {
-			java.util.Arrays.sort(dim);
-		}
-		Tensor t = new Tensor(this);
-		for (int i = dim.length - 1; i >= 0; -- i) {
-			if (t.size(dim[i]) == 1) {
-				t = t.select(dim[i], 1);
-			}
-		}
-		return t;
-	}
+
+    public Tensor squeeze(int... dim) {
+        if (dim.length == 0) {
+            dim = new int[size.length];
+            for (int i = 0; i < size.length; ++i) dim[i] = i + 1;
+        } else {
+            java.util.Arrays.sort(dim);
+        }
+        Tensor t = new Tensor(this);
+        for (int i = dim.length - 1; i >= 0; --i) {
+            if (t.size(dim[i]) == 1) {
+                t = t.select(dim[i], 1);
+            }
+        }
+        return t;
+    }
 
 
 // [result] view([result,] tensor, sizes)
@@ -2091,39 +2139,40 @@ public final class Tensor // DoubleTensor
 // 0
 // 0
 // [torch.DoubleTensor of dimension 4]
-	
-	public Tensor view(int... size) {
-		if (! isContiguous()) throw new IllegalArgumentException("Expecting a contiguous tensor.");
-		_fixDefaultSize(size, _totalSize(this.size));
-		Tensor t = new Tensor(this);
-		t.size = _copyIntArray(size);
-		t.stride = _defaultStride(size);
-		t.storageOffset = new int[size.length + 1];
-		t.storageOffset[0] = this.storageOffset[0]; // For contiguous tensor, all other storageOffsets are 0's 
-		t.dimPermutation = null;
-		return t;
-	}
 
-	static void _fixDefaultSize(int[] size, int totalSize) {
-		int unknownIndex = -1;
-		for (int i = 0; i < size.length; ++ i) {
-			if (size[i] != -1) continue;
-			unknownIndex = i;
-			size[i] = 1;
-			break;
-		}
-		int totalSize2 = _totalSize(size);
-		if (unknownIndex != -1) {
-			size[unknownIndex] = totalSize / totalSize2;
-			totalSize2 *= size[unknownIndex];
-		}
-		if (totalSize2 != totalSize) throw new IllegalArgumentException("Wrong size for view.");
-	}
+    public Tensor view(int... size) {
+        if (!isContiguous()) throw new IllegalArgumentException("Expecting a contiguous tensor.");
+        _fixDefaultSize(size, _totalSize(this.size));
+        Tensor t = new Tensor(this);
+        t.size = _copyIntArray(size);
+        t.stride = _defaultStride(size);
+        t.storageOffset = new int[size.length + 1];
+        t.storageOffset[0] = this.storageOffset[0]; // For contiguous tensor, all other storageOffsets are 0's
+        t.dimPermutation = null;
+        return t;
+    }
+
+    static void _fixDefaultSize(int[] size, int totalSize) {
+        int unknownIndex = -1;
+        for (int i = 0; i < size.length; ++i) {
+            if (size[i] != -1) continue;
+            unknownIndex = i;
+            size[i] = 1;
+            break;
+        }
+        int totalSize2 = _totalSize(size);
+        if (unknownIndex != -1) {
+            size[unknownIndex] = totalSize / totalSize2;
+            totalSize2 *= size[unknownIndex];
+        }
+        if (totalSize2 != totalSize) throw new IllegalArgumentException("Wrong size for view.");
+    }
 
 
 // [result] viewAs([result,] tensor, template)
 
-// Creates a view with the same dimensions as template of the storage associated with tensor. If result is not passed, then a new tensor is returned, otherwise its storage is made to point to storage of tensor.
+// Creates a view with the same dimensions as template of the storage associated with tensor.
+// If result is not passed, then a new tensor is returned, otherwise its storage is made to point to storage of tensor.
 
 // x = torch.zeros(4)
 // y = torch.Tensor(2,2)
@@ -2132,9 +2181,9 @@ public final class Tensor // DoubleTensor
 // 0 0
 // [torch.DoubleTensor of dimension 2x2]
 
-	public Tensor viewAs(Tensor that) {
-		return view(that.size());
-	}
+    public Tensor viewAs(Tensor that) {
+        return view(that.size());
+    }
 
 // [Tensor] transpose(dim1, dim2)
 
@@ -2169,39 +2218,39 @@ public final class Tensor // DoubleTensor
 // 0  0  7  0
 // 8  8  8  8
 // [torch.DoubleTensor of dimension 3x4]
-	
-	public Tensor transpose(int dim1, int dim2) {
-		Tensor t = new Tensor(this);
-		if (t.dimPermutation == null) t.dimPermutation = _intRange(1, t.size.length, 1);
-		_swapIntArray(t.dimPermutation, dim1 - 1, dim2 - 1);
-		t.dimPermutation = _validateDimPermutation(t.dimPermutation);
-		return t;
-	}
 
-	static int[] _intRange(int start, int end, int interval) {
-		int count = (end - start) / interval + 1;
-		int[] range = new int[count];
-		for (int i = 0; i < count; ++ i) {
-			range[i] = start + i * interval;
-		}
-		return range;
-	}
+    public Tensor transpose(int dim1, int dim2) {
+        Tensor t = new Tensor(this);
+        if (t.dimPermutation == null) t.dimPermutation = _intRange(1, t.size.length, 1);
+        _swapIntArray(t.dimPermutation, dim1 - 1, dim2 - 1);
+        t.dimPermutation = _validateDimPermutation(t.dimPermutation);
+        return t;
+    }
 
-	static void _swapIntArray(int[] array, int index1, int index2) {
-		int temp = array[index1];
-		array[index1] = array[index2];
-		array[index2] = temp;
-	}
+    static int[] _intRange(int start, int end, int interval) {
+        int count = (end - start) / interval + 1;
+        int[] range = new int[count];
+        for (int i = 0; i < count; ++i) {
+            range[i] = start + i * interval;
+        }
+        return range;
+    }
 
-	static int[] _validateDimPermutation(int[] dimPermutation) {
-		if (dimPermutation == null) return null;
-		int[] range = _intRange(1, dimPermutation.length, 1);
-		if (_compareIntArrays(range, dimPermutation)) return null;
-		int[] dimPermutation2 = _copyIntArray(dimPermutation);
-		java.util.Arrays.sort(dimPermutation2);
-		if (! _compareIntArrays(dimPermutation2, range)) throw new IllegalArgumentException("Invalid permutation.");
-		return dimPermutation;
-	}
+    static void _swapIntArray(int[] array, int index1, int index2) {
+        int temp = array[index1];
+        array[index1] = array[index2];
+        array[index2] = temp;
+    }
+
+    static int[] _validateDimPermutation(int[] dimPermutation) {
+        if (dimPermutation == null) return null;
+        int[] range = _intRange(1, dimPermutation.length, 1);
+        if (_compareIntArrays(range, dimPermutation)) return null;
+        int[] dimPermutation2 = _copyIntArray(dimPermutation);
+        java.util.Arrays.sort(dimPermutation2);
+        if (!_compareIntArrays(dimPermutation2, range)) throw new IllegalArgumentException("Invalid permutation.");
+        return dimPermutation;
+    }
 
 // [Tensor] t()
 
@@ -2223,14 +2272,16 @@ public final class Tensor // DoubleTensor
 // 0  0  7  0
 // [torch.DoubleTensor of dimension 3x4]
 
-	public Tensor t() {
-		if (size.length != 2) throw new IllegalArgumentException("Tensor must have 2 dimensions.");
-		return transpose(1,2);
-	}
+    public Tensor t() {
+        if (size.length != 2) throw new IllegalArgumentException("Tensor must have 2 dimensions.");
+        return transpose(1, 2);
+    }
 
 // [Tensor] permute(dim1, dim2, ..., dimn)
 
-// Generalizes the function transpose() and can be used as a convenience method replacing a sequence of transpose() calls. Returns a tensor where the dimensions were permuted according to the permutation given by (dim1, dim2, ... , dimn). The permutation must be specified fully, i.e. there must be as many parameters as the tensor has dimensions.
+// Generalizes the function transpose() and can be used as a convenience method replacing a sequence of transpose() calls.
+// Returns a tensor where the dimensions were permuted according to the permutation given by (dim1, dim2, ... , dimn).
+// The permutation must be specified fully, i.e. there must be as many parameters as the tensor has dimensions.
 
 // x = torch.Tensor(3,4,2,5)
 // > x:size()
@@ -2248,13 +2299,13 @@ public final class Tensor // DoubleTensor
 // 5
 // [torch.LongStorage of size 4]
 
-	public Tensor permute(int... permutation) {
-		Tensor t = new Tensor(this);
-		if (t.dimPermutation == null) t.dimPermutation = _intRange(1, t.size.length, 1);
-		t.dimPermutation = _physicalDimension(permutation, t.dimPermutation);
-		t.dimPermutation = _validateDimPermutation(t.dimPermutation);
-		return t;
-	}
+    public Tensor permute(int... permutation) {
+        Tensor t = new Tensor(this);
+        if (t.dimPermutation == null) t.dimPermutation = _intRange(1, t.size.length, 1);
+        t.dimPermutation = _physicalDimension(permutation, t.dimPermutation);
+        t.dimPermutation = _validateDimPermutation(t.dimPermutation);
+        return t;
+    }
 
 // [Tensor] unfold(dim, size, step)
 
@@ -2294,39 +2345,39 @@ public final class Tensor // DoubleTensor
 // [torch.DoubleTensor of dimension 3x2]
 // Applying a function to a tensor
 
-	public Tensor unfold(int dim, int size, int step) {
-		Tensor t = narrow(dim, 1, size);
-		
-		int dim0 = dim;
-		dim = _physicalDimension(dimPermutation, dim);
+    public Tensor unfold(int dim, int size, int step) {
+        Tensor t = narrow(dim, 1, size);
 
-		t.storageOffset = _insertIntArray(t.storageOffset, dim + 1, 0);
-		int size1 = (this.size[dim - 1] - size) / step + 1;
-		t.size = _insertIntArray(t.size, dim, size1);
-		t.size[dim] = size;
-		t.stride = _insertIntArray(t.stride, dim, t.stride[dim - 1] * step);
-		t.dimPermutation = _appendPermutation(t.dimPermutation, dim0, t.size.length - 1);
-		return t;
-	}
+        int dim0 = dim;
+        dim = _physicalDimension(dimPermutation, dim);
 
-	static int[] _insertIntArray(int[] array, int dim, int value) {
-		int[] array2 = new int[array.length + 1];
-		_copyIntArray(array2, array, 0, dim - 1, 0);
-		_copyIntArray(array2, array, dim - 1, array.length, 1);
-		array2[dim - 1] = value;
-		return array2;
-	}
+        t.storageOffset = _insertIntArray(t.storageOffset, dim + 1, 0);
+        int size1 = (this.size[dim - 1] - size) / step + 1;
+        t.size = _insertIntArray(t.size, dim, size1);
+        t.size[dim] = size;
+        t.stride = _insertIntArray(t.stride, dim, t.stride[dim - 1] * step);
+        t.dimPermutation = _appendPermutation(t.dimPermutation, dim0, t.size.length - 1);
+        return t;
+    }
 
-	static int[] _appendPermutation(int[] dimPermutation, int dim0, int size) {
-		if (dimPermutation == null) dimPermutation = _intRange(1, size, 1);
-		dimPermutation = _insertIntArray(dimPermutation, size + 1, 0);
-		int dim = dimPermutation[dim0 - 1];
-		for (int i = 0; i < dimPermutation.length; ++ i) {
-			if (dimPermutation[i] > dim) ++ dimPermutation[i];
-		}
-		dimPermutation[size] = dim + 1;
-		return _validateDimPermutation(dimPermutation);
-	}
+    static int[] _insertIntArray(int[] array, int dim, int value) {
+        int[] array2 = new int[array.length + 1];
+        _copyIntArray(array2, array, 0, dim - 1, 0);
+        _copyIntArray(array2, array, dim - 1, array.length, 1);
+        array2[dim - 1] = value;
+        return array2;
+    }
+
+    static int[] _appendPermutation(int[] dimPermutation, int dim0, int size) {
+        if (dimPermutation == null) dimPermutation = _intRange(1, size, 1);
+        dimPermutation = _insertIntArray(dimPermutation, size + 1, 0);
+        int dim = dimPermutation[dim0 - 1];
+        for (int i = 0; i < dimPermutation.length; ++i) {
+            if (dimPermutation[i] > dim) ++dimPermutation[i];
+        }
+        dimPermutation[size] = dim + 1;
+        return _validateDimPermutation(dimPermutation);
+    }
 
 // These functions apply a function to each element of the tensor on which called the method (self). 
 // These methods are much faster than using a for loop in Lua. 
@@ -2408,41 +2459,40 @@ public final class Tensor // DoubleTensor
 // 49  64  81
 // [torch.DoubleTensor of dimension 3x3]
 
-	@FunctionalInterface
-	interface Function2 <T1, T2, R>
-	{
-		public R apply(T1 t1, T2 t2);
-	}
-	
-	public Tensor map(Tensor y, Function2<Double, Double, Double> function2) {
-		int nel = nElement();
-		if (nel != y.nElement()) {
-			throw new IllegalArgumentException("Number of elements do not agree.");
-		}
-		TensorIndexesIterator iitx = new TensorIndexesIterator(this);
-		TensorIndexesIterator iity = new TensorIndexesIterator(y);
-		for (int i = 0; i < nel; ++ i) {
-			int[] ix = iitx.next();
-			double x1 = get(ix);
-			double y1 = y.get(iity.next());
-			set(function2.apply(x1, y1), ix);
-		}
-		return this;
-	}
+    @FunctionalInterface
+    interface Function2<T1, T2, R> {
+        public R apply(T1 t1, T2 t2);
+    }
 
-	public Tensor map(Tensor y, java.util.function.Function<Double, Double> function) {
-		int nel = nElement();
-		if (nel != y.nElement()) {
-			throw new IllegalArgumentException("Number of elements do not agree.");
-		}
-		TensorIndexesIterator iitx = new TensorIndexesIterator(this);
-		TensorIndexesIterator iity = new TensorIndexesIterator(y);
-		for (int i = 0; i < nel; ++ i) {
-			double y1 = y.get(iity.next());
-			set(function.apply(y1), iitx.next());
-		}
-		return this;
-	}
+    public Tensor map(Tensor y, Function2<Double, Double, Double> function2) {
+        int nel = nElement();
+        if (nel != y.nElement()) {
+            throw new IllegalArgumentException("Number of elements do not agree.");
+        }
+        TensorIndexesIterator iitx = new TensorIndexesIterator(this);
+        TensorIndexesIterator iity = new TensorIndexesIterator(y);
+        for (int i = 0; i < nel; ++i) {
+            int[] ix = iitx.next();
+            double x1 = get(ix);
+            double y1 = y.get(iity.next());
+            set(function2.apply(x1, y1), ix);
+        }
+        return this;
+    }
+
+    public Tensor map(Tensor y, java.util.function.Function<Double, Double> function) {
+        int nel = nElement();
+        if (nel != y.nElement()) {
+            throw new IllegalArgumentException("Number of elements do not agree.");
+        }
+        TensorIndexesIterator iitx = new TensorIndexesIterator(this);
+        TensorIndexesIterator iity = new TensorIndexesIterator(y);
+        for (int i = 0; i < nel; ++i) {
+            double y1 = y.get(iity.next());
+            set(function.apply(y1), iitx.next());
+        }
+        return this;
+    }
 
 // [self] map2(tensor1, tensor2, function(x, xt1, xt2))
 
@@ -2490,74 +2540,71 @@ public final class Tensor // DoubleTensor
 // 16.4272  25.0805  36.9219
 // 49.5684  64.0212  81.8302
 // [torch.DoubleTensor of dimension 3x3]
-	
-	@FunctionalInterface
-	interface Function3 <T1, T2, T3, R>
-	{
-		public R apply(T1 t1, T2 t2, T3 t3);
-	}
-	
-	public Tensor map2(Tensor y, Tensor z, Function3<Double, Double, Double, Double> function3) {
-		int nel = nElement();
-		if (nel != y.nElement() || nel != z.nElement()) {
-			throw new IllegalArgumentException("Number of elements do not agree.");
-		}
-		TensorIndexesIterator iitx = new TensorIndexesIterator(this);
-		TensorIndexesIterator iity = new TensorIndexesIterator(y);
-		TensorIndexesIterator iitz = new TensorIndexesIterator(z);
-		for (int i = 0; i < nel; ++ i) {
-			int[] ix = iitx.next();
-			double x1 = get(ix);
-			double y1 = y.get(iity.next());
-			double z1 = z.get(iitz.next());
-			set(function3.apply(x1, y1, z1), ix);
-		}
-		return this;
-	}
 
-	public Tensor map2(Tensor y, Tensor z, Function2<Double, Double, Double> function2) {
-		int nel = nElement();
-		if (nel != y.nElement() || nel != z.nElement()) {
-			throw new IllegalArgumentException("Number of elements do not agree.");
-		}
-		TensorIndexesIterator iitx = new TensorIndexesIterator(this);
-		TensorIndexesIterator iity = new TensorIndexesIterator(y);
-		TensorIndexesIterator iitz = new TensorIndexesIterator(z);
-		for (int i = 0; i < nel; ++ i) {
-			double y1 = y.get(iity.next());
-			double z1 = z.get(iitz.next());
-			set(function2.apply(y1, z1), iitx.next());
-		}
-		return this;
-	}
-	
+    @FunctionalInterface
+    interface Function3<T1, T2, T3, R> {
+        public R apply(T1 t1, T2 t2, T3 t3);
+    }
 
-	
-	static class TensorIndexesIterator
-	{
-		private int[] size;
-		private int[] indexes;
-		
-		public TensorIndexesIterator(Tensor t) {
-			size = t.size();
-			indexes = new int[size.length];
-			for (int i = 0; i < size.length - 1; ++ i) indexes[i] = 1;
-		}
-		
-		public int[] next() {
-			++ indexes[size.length - 1];
-			for (int i = size.length - 1; i >= 0; -- i) {
-				if (indexes[i] > size[i]) {
-					indexes[i] = 1;
-					if (i == 0) throw new java.util.NoSuchElementException();
-					++ indexes[i - 1];
-				}
-			}
-			return indexes;
-		}
-	}
-	
-	
+    public Tensor map2(Tensor y, Tensor z, Function3<Double, Double, Double, Double> function3) {
+        int nel = nElement();
+        if (nel != y.nElement() || nel != z.nElement()) {
+            throw new IllegalArgumentException("Number of elements do not agree.");
+        }
+        TensorIndexesIterator iitx = new TensorIndexesIterator(this);
+        TensorIndexesIterator iity = new TensorIndexesIterator(y);
+        TensorIndexesIterator iitz = new TensorIndexesIterator(z);
+        for (int i = 0; i < nel; ++i) {
+            int[] ix = iitx.next();
+            double x1 = get(ix);
+            double y1 = y.get(iity.next());
+            double z1 = z.get(iitz.next());
+            set(function3.apply(x1, y1, z1), ix);
+        }
+        return this;
+    }
+
+    public Tensor map2(Tensor y, Tensor z, Function2<Double, Double, Double> function2) {
+        int nel = nElement();
+        if (nel != y.nElement() || nel != z.nElement()) {
+            throw new IllegalArgumentException("Number of elements do not agree.");
+        }
+        TensorIndexesIterator iitx = new TensorIndexesIterator(this);
+        TensorIndexesIterator iity = new TensorIndexesIterator(y);
+        TensorIndexesIterator iitz = new TensorIndexesIterator(z);
+        for (int i = 0; i < nel; ++i) {
+            double y1 = y.get(iity.next());
+            double z1 = z.get(iitz.next());
+            set(function2.apply(y1, z1), iitx.next());
+        }
+        return this;
+    }
+
+
+    static class TensorIndexesIterator {
+        private int[] size;
+        private int[] indexes;
+
+        public TensorIndexesIterator(Tensor t) {
+            size = t.size();
+            indexes = new int[size.length];
+            for (int i = 0; i < size.length - 1; ++i) indexes[i] = 1;
+        }
+
+        public int[] next() {
+            ++indexes[size.length - 1];
+            for (int i = size.length - 1; i >= 0; --i) {
+                if (indexes[i] > size[i]) {
+                    indexes[i] = 1;
+                    if (i == 0) throw new java.util.NoSuchElementException();
+                    ++indexes[i - 1];
+                }
+            }
+            return indexes;
+        }
+    }
+
+
 // Dividing a tensor into a table of tensors
 
 // These functions divide a Tensor into a table of Tensors.
@@ -2565,7 +2612,8 @@ public final class Tensor // DoubleTensor
 
 // [result] split([result,] tensor, size, [dim])
 
-// Splits Tensor tensor along dimension dim into a result table of Tensors of size size (a number) or less (in the case of the last Tensor). The sizes of the non-dim dimensions remain unchanged. Internally, a series of narrows are performed along dimensions dim. Argument dim defaults to 1.
+// Splits Tensor tensor along dimension dim into a result table of Tensors of size size (a number) or less (in the case of the last Tensor).
+// The sizes of the non-dim dimensions remain unchanged. Internally, a series of narrows are performed along dimensions dim. Argument dim defaults to 1.
 
 // If result is not passed, then a new table is returned, otherwise it is emptied and reused.
 
@@ -2591,17 +2639,17 @@ public final class Tensor // DoubleTensor
 // 2 : DoubleTensor - size: 3x4x2
 // 3 : DoubleTensor - size: 3x4x1
 // }
-	
-	public Tensor[] split(int size, int dim) {
-		int totalSize = size(dim);
-		int count = (int)Math.ceil(totalSize / (double)size);
-		Tensor[] tensors = new Tensor[count];
-		for (int i = 0; i < tensors.length; ++ i) {
-			tensors[i] = narrow(dim, i * size + 1, (totalSize > size ? size : totalSize));
-			totalSize -= size;
-		}
-		return tensors;
-	}
+
+    public Tensor[] split(int size, int dim) {
+        int totalSize = size(dim);
+        int count = (int) Math.ceil(totalSize / (double) size);
+        Tensor[] tensors = new Tensor[count];
+        for (int i = 0; i < tensors.length; ++i) {
+            tensors[i] = narrow(dim, i * size + 1, (totalSize > size ? size : totalSize));
+            totalSize -= size;
+        }
+        return tensors;
+    }
 
 
 // [result] chunk([result,] tensor, n, [dim])
@@ -2632,11 +2680,11 @@ public final class Tensor // DoubleTensor
 // 1 : DoubleTensor - size: 3x4x3
 // 2 : DoubleTensor - size: 3x4x2
 // }
-	
-	public Tensor[] chunk(int n, int dim) {
-		int size = (int)Math.ceil(size(dim) / (double)n);
-		return split(size, dim);
-	}
+
+    public Tensor[] chunk(int n, int dim) {
+        int size = (int) Math.ceil(size(dim) / (double) n);
+        return split(size, dim);
+    }
 
 // LuaJIT FFI access
 
@@ -2665,7 +2713,8 @@ public final class Tensor // DoubleTensor
 // 0 0
 // 0 0
 // [torch.DoubleTensor of dimension 3x2]
-// WARNING: bear in mind that accessing the raw data like this is dangerous, and should only be done on contiguous tensors (if a tensor is not contiguous, then you have to use its size and stride information). Making sure a tensor is contiguous is easy:
+// WARNING: bear in mind that accessing the raw data like this is dangerous, and should only be done on contiguous tensors (if a tensor is not contiguous,
+// then you have to use its size and stride information). Making sure a tensor is contiguous is easy:
 
 // t = torch.randn(3,2)
 // t_noncontiguous = t:transpose(1,2)
@@ -2675,7 +2724,9 @@ public final class Tensor // DoubleTensor
 
 // -- it is now safe to work with the raw pointer
 // data = torch.data(t_transposed_and_contiguous)
-// Last, the pointer can be returned as a plain intptr_t cdata. This can be useful to share pointers between threads (warning: this is dangerous, as the second tensor doesn't increment the reference counter on the storage. If the first tensor gets freed, then the data of the second tensor becomes a dangling pointer):
+// Last, the pointer can be returned as a plain intptr_t cdata.
+// This can be useful to share pointers between threads (warning: this is dangerous, as the second tensor doesn't increment the reference counter on the storage.
+// If the first tensor gets freed, then the data of the second tensor becomes a dangling pointer):
 
 // t = torch.randn(10)
 // p = tonumber(torch.data(t,true))
@@ -2689,9 +2740,11 @@ public final class Tensor // DoubleTensor
 
 // Reference counting
 
-// Tensors are reference-counted. It means that each time an object (C or the Lua state) need to keep a reference over a tensor, the corresponding tensor reference counter will be increased. The reference counter is decreased when the object does not need the tensor anymore.
+// Tensors are reference-counted. It means that each time an object (C or the Lua state) need to keep a reference over a tensor,
+// the corresponding tensor reference counter will be increased. The reference counter is decreased when the object does not need the tensor anymore.
 
-// These methods should be used with extreme care. In general, they should never be called, except if you know what you are doing, as the handling of references is done automatically. They can be useful in threaded environments. Note that these methods are atomic operations.
+// These methods should be used with extreme care. In general, they should never be called, except if you know what you are doing,
+// as the handling of references is done automatically. They can be useful in threaded environments. Note that these methods are atomic operations.
 
 
 // retain()
