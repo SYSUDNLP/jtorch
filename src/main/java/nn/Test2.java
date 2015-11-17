@@ -1,9 +1,14 @@
+/*
+This program contains test-cases and examples for 
+	Tensor.java
+	TensorMath.java
+*/
 
 package nn;
 
-import static nn.TensorMath.*; // To directly access all static functions in nn.TensorMath
+import static nn.TensorMath.*;
 
-public final class TensorTest
+public final class Test2
 {
 	/*
 	t = torch.Tensor(3,4,5)
@@ -12,15 +17,15 @@ public final class TensorTest
 	end
 	*/
 	static void testSizeAndStride() {
-		//nn.Tensor t1 = new nn.Tensor(3,4,5);
+		//Tensor t1 = new Tensor(3,4,5);
 		//t1 = t1.transpose(1,3).range(); // range fill all elements with serial 1, 2, 3, ... 
 		Tensor t1 = reshape(range(1, 5*4*3), 5,4,3);
 		print(t1);
 		
-		nn.Tensor t2 = new nn.Tensor(new int[] {3,4,5}, new int[] {-1,-1,0});
+		Tensor t2 = new Tensor(new int[] {3,4,5}, new int[] {-1,-1,0});
 		printInfo(t2);
 		
-		//nn.Tensor t3 = new nn.Tensor(new int[] {5,4,3}, new int[] {-1,2,-1});
+		//Tensor t3 = new Tensor(new int[] {5,4,3}, new int[] {-1,2,-1});
 		//t3 = t3.transpose(1,3).range();
 		Tensor t3 = zeros(3,4,5);
 		range(t3, 1, 3*4*5, 1);
@@ -30,7 +35,7 @@ public final class TensorTest
 		// t3:storage():size()
 				
 		print(diag(diag(ones(5, 5))));
-		print(new nn.Tensor(new double[][][] {{{1,2,3}, {4,5,6}}, {{11,12,13}, {14,15,16}}}));
+		print(new Tensor(new double[][][] {{{1,2,3}, {4,5,6}}, {{11,12,13}, {14,15,16}}}));
 		print(diag(ones(5))); // eye(5)
 	}
 
@@ -44,13 +49,13 @@ public final class TensorTest
 	print(t)
 	*/
 	static void testGetAndSet() {
-		nn.Tensor t1 = new nn.Tensor(3);
+		Tensor t1 = new Tensor(3);
 		for (int i = 1; i <= t1.size(1); ++ i) {
 			t1.set(i * 10, i);
 		}
 		print(t1);
 
-		nn.Tensor t2 = new nn.Tensor(3,4);
+		Tensor t2 = new Tensor(3,4);
 		for (int i = 1; i <= t2.size(1); ++ i) {
 			for (int j = 1; j <= t2.size(2); ++ j) {
 				t2.set(i * 10 + j, i, j);
@@ -70,7 +75,7 @@ public final class TensorTest
 	 */
 /*
 	static void testApply() {
-		nn.Tensor t = new nn.Tensor(4,5).copy(range(1, 4*5));
+		Tensor t = new Tensor(4,5).copy(range(1, 4*5));
 		print(t);
 		print(t.max());
 		print(t.min());
@@ -93,9 +98,9 @@ public final class TensorTest
 	print(x)
 	 */
 	static void testMap() {
-		nn.Tensor x = new nn.Tensor(3,3);
-		nn.Tensor y = new nn.Tensor(9);
-		nn.Tensor z = new nn.Tensor(3,3);
+		Tensor x = new Tensor(3,3);
+		Tensor y = new Tensor(9);
+		Tensor z = new Tensor(3,3);
 
 		x.fill(1);
 		y.fill(2);
@@ -119,14 +124,18 @@ public final class TensorTest
 	print(x2:narrow(2, 3, 2):copy(x2:narrow(2, 2, 2)))
 	 */
 	static void testNarrow() {
-		nn.Tensor x2 = new nn.Tensor(new double[][][] {{{1,2,3,4},{5,6,7,8},{9,10,11,12}},
+		Tensor x2 = new Tensor(new double[][][] {{{1,2,3,4},{5,6,7,8},{9,10,11,12}},
 			{{13,14,15,16},{17,18,19,20},{21,22,23,24}}});
-		//nn.Tensor x2 = new nn.Tensor(new double[][] {{1,2,3,4},{5,6,7,8},{9,10,11,12}});
-		printInfo(x2.select(1,1));
-		printInfo(x2.select(1,2));
+		//Tensor x2 = new Tensor(new double[][] {{1,2,3,4},{5,6,7,8},{9,10,11,12}});
+		print(x2.select(1,1));
+		print(x2.select(1,2));
+		print(x2.select(2,1));
+		print(x2.select(2,3));
+		print(x2.select(3,1));
+		print(x2.select(3,3));
 		print(x2);
 		
-		printInfo(x2.narrow(1, 2, 1));
+		print(x2.narrow(1, 2, 1));
 		print(x2.narrow(2, 2, 2));
 		
 		x2.narrow(2, 1, 2).copy(x2.narrow(2, 2, 2));
@@ -134,7 +143,7 @@ public final class TensorTest
 		x2.narrow(1, 2, 1).narrow(2, 2, 2).fill(100);
 		print(x2);
 		
-		x2 = new nn.Tensor(2,3,4,5);
+		x2 = new Tensor(2,3,4,5);
 		double[] s = x2.storage();
 		for (int i = 0; i < s.length; ++ i) s[i] = i + 1;
 		print(x2);
@@ -148,7 +157,7 @@ public final class TensorTest
 	 print(x2)
 	 */
 	static void testSub() {
-		nn.Tensor x2 = new nn.Tensor(new double[][] {{1,2,3,4},{5,6,7,8},{9,10,11,12}});
+		Tensor x2 = new Tensor(new double[][] {{1,2,3,4},{5,6,7,8},{9,10,11,12}});
 		print(x2);
 		print(x2.sub(2,2,2,3));
 		x2.sub(2,2,2,3).fill(100);
@@ -176,7 +185,6 @@ public final class TensorTest
 	 */
 	static void testExpand() {
 		Tensor x2 = rand(1,3,1);
-		printInfo(x2);
 		print(x2);
 		x2 = x2.expand(2,3,4);
 		printInfo(x2);
@@ -196,19 +204,19 @@ public final class TensorTest
 	/*
 	*/
 	static void testView() {
-		Tensor x2 = rand(2,3);
+		Tensor x2 = clamp(randn(2,3), -1, 1);
 		print(x2);
 		print(x2.narrow(1,1,1));
-		printInfo(x2.narrow(1,1,1));
 		print(x2.narrow(1,2,1));
-		printInfo(x2.narrow(1,2,1));
 		print(x2.narrow(1,2,1).view(3,1));
 	}
 
 	static void testPermute() {
 		Tensor x = reshape(range(1, 2*3*4), 2,3,4);
 		print(x);
-		x.select(3,4).fill(100);
+		x = x.permute(3,1,2);
+		print(x);
+		x = x.permute(3,1,2);
 		print(x);
 	}
 
@@ -219,10 +227,12 @@ public final class TensorTest
 	t:unfold(2,2,2)
 	t:unfold(1,2,1)
 	*/
-	static void testInfold() {
+	static void testUnfold() {
 		Tensor t = reshape(range(1, 3*4), 3,4);
+		print(t);
 		print(t.unfold(2,3,1));
 		print(t.unfold(2,2,2));
+		print("" + t.unfold(2,2,2).isContiguous());
 		print(t.unfold(1,2,1));
 	}
 
@@ -263,10 +273,10 @@ public final class TensorTest
 	
 	static String tensorInfo(Tensor t) {
 		StringBuffer buf = new StringBuffer();
-		buf.append("[nn.Tensor of size");
+		buf.append("[Tensor of size");
 		int[] size = t.size();
 		for (int i = 1; i <= size.length; ++ i) buf.append((i == 1 ? " " : "x") + size[i - 1]);
-		buf.append("]\n");
+		buf.append(", storage " + t.storage().length + "(" + t.storageOffset() + ")]\n");
 		/*
 		buf.append("size");
 		int[] size = t.size();
@@ -323,8 +333,8 @@ public final class TensorTest
 
 	static void testMath() {
 
-		// import nn.Tensor;
-		// import static nn.TensorMath.*; // To directly access all static functions in nn.TensorMath
+		// import jtorch.Tensor;
+		// import static jtorch.TensorMath.*; // To directly access all static functions in TensorMath
 
 		Tensor x1 = eye(3); // torch.eye(3)
 		Tensor x2 = zeros(3,3); // torch.zeros(3)
@@ -380,18 +390,26 @@ public final class TensorTest
 			inverse(add(eye(5), ones(5,5)))
 		);
 
+		print(
+			sum(reshape(range(1,4*5),4,5), 1)
+		);
+
+		print(
+			sum(reshape(range(1,3*4*5),3,4,5), 1)
+		);
+
 		Tensor b1 = rand(5000,5000);
 		Tensor b2 = rand(5000,5000);
 		tic();
-		mm(b1,b2);
-		toc();
-		Parallel.mm(b1,b2);
+		//mm(b1,b2);
+		//toc();
+		ParallelTasks.mm(b1,b2);
 		toc();
 
 	}
 
 	public static void main(String ... args) {
-		testMath();
+		//testMath();
 		//testSizeAndStride();
 		//testGetAndSet();
 		//testApply();
@@ -403,7 +421,7 @@ public final class TensorTest
 		//testSqueeze();
 		//testView();
 		//testPermute();
-		//testInfold();
+		//testUnfold();
 		//testSplitAndChunk();
 	}
 	

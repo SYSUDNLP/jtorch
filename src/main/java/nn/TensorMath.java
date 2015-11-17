@@ -269,6 +269,16 @@ public final class TensorMath
 		return randn(null, size);
 	}
 
+	public static Tensor uniform(Tensor res, double min, double max, int... size) {
+		if (res == null) res = new Tensor(size);
+		else assert(res.isSize(size));
+		return res.apply(() -> min + (max - min) * random.nextDouble());
+	}
+
+	public static Tensor uniform(double min, double max, int... size) {
+		return uniform(null, min, max, size);
+	}
+
 // [res] torch.randn([res,] m [,n...])
 
 
@@ -380,6 +390,15 @@ public final class TensorMath
 
 // x:abs() replaces all elements in-place with the absolute values of the elements of x.
 
+	public static Tensor abs(Tensor res, Tensor x) {
+		if (res == null) res = new Tensor(x.size());
+		else assert(res.isSize(x.size()));
+		return res.map(x, (java.util.function.Function<Double, Double>)Math::abs);
+	}
+
+	public static Tensor abs(Tensor x) {
+		return abs(null, x);
+	}
 
 // [res] torch.sign([res,] x)
 
@@ -690,6 +709,15 @@ public final class TensorMath
 
 // torch.add(z,x,value,y) puts the result of x + value*y in z.
 
+	public static Tensor add(Tensor res, Tensor tensor1, double value, Tensor tensor2) {
+		if (res == null) res = new Tensor(tensor1.size());
+		else assert(res.isSize(tensor1.size()));
+		return res.map2(tensor1, tensor2, (a, b) -> a + value * b);
+	}
+
+	public static Tensor add(Tensor tensor1, double value, Tensor tensor2) {
+		return add(null, tensor1, value, tensor2);
+	}
 
 // tensor:csub(value)
 
@@ -986,7 +1014,6 @@ public final class TensorMath
 
 // r:addmv(x,y,z) puts the result of x+y*z into r.
 
-
 // [res] torch.addr([res,] [v1,] mat, [v2,] vec1, vec2)
 
 
@@ -1154,7 +1181,7 @@ public final class TensorMath
 		}
 	}
 
-	public static double _dotvv(int vecSize, double[] vec1, int offset1, double[] vec2, int offset2) {
+	private static double _dotvv(int vecSize, double[] vec1, int offset1, double[] vec2, int offset2) {
 		double sum = 0;
 		for (int i = 0; i < vecSize; ++ i) {
 			sum += vec1[offset1 + i] * vec2[offset2 + i];
@@ -1173,10 +1200,6 @@ public final class TensorMath
 // M:bmm(x,y) puts the result in M, resizing M if necessary.
 
 	public static Tensor bmm(Tensor res, Tensor batch1, Tensor batch2) {
-		System.out.println(batch1.dim());
-		System.out.println(batch2.dim());
-		System.out.println(batch1.size(1));
-		System.out.println(batch2.size(1));
 		if (batch1.dim() != 3 || batch2.dim() != 3 || batch1.size(1) != batch2.size(1)) 
 			throw new IllegalArgumentException("Invalid batch size.");
 		if (res == null) res = new Tensor(batch1.size(1), batch1.size(2), batch2.size(3));
@@ -1722,6 +1745,21 @@ public final class TensorMath
 		double[] sum = new double[] { 0 };
 		Tensor.reduce(t, x -> sum[0] += x );
 		return sum[0];
+	}
+
+	public static Tensor sum(Tensor res, Tensor t, int dim) {
+		int[] size = t.size();
+		size[dim - 1] = 1;
+		if (res == null) res = new Tensor(size);
+		else assert(res.isSize(size));
+		for (int i = 1; i <= t.size(dim); ++ i) {
+			add(res, res, t.select(dim, i));
+		}
+		return res;
+	}
+
+	public static Tensor sum(Tensor t, int dim) {
+		return sum(null, t, dim);
 	}
 
 // [res] torch.var([res,] x [,dim] [,flag])
