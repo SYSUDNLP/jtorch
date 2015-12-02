@@ -558,6 +558,16 @@ public final class TensorMath
 		return pow(null, x, n);
 	}
 
+	public static Tensor pow(Tensor res, double n, Tensor x) {
+		if (res == null) res = new Tensor(x.size());
+		else assert(res.isSize(x.size()));
+		return res.map(x, x1 -> Math.pow(n, x1));
+	}
+
+	public static Tensor pow(double n, Tensor x) {
+		return pow(null, n, x);
+	}
+
 
 // [res] torch.round([res,] x)
 

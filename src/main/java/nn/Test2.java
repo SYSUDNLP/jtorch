@@ -6,7 +6,7 @@ This program contains test-cases and examples for
 
 package nn;
 
-import static nn.TensorMath.*;
+import static nn.TensorMath.*; // To directly access all static functions in TensorMath
 
 public final class Test2
 {

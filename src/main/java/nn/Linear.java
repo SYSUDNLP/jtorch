@@ -2,7 +2,6 @@ package nn;
 
 // local Linear, parent = torch.class('nn.Linear', 'nn.Module')
 
-
 import static nn.TensorMath.*;
 
 public class Linear extends Module

@@ -6,12 +6,12 @@ This program contains test-cases and examples for
 
 package nn;
 
-import static nn.TensorMath.*;
+import static nn.TensorMath.*; // To directly access all static functions in TensorMath
 
 public final class Test1
 {
 
-	static void print(int[] array) {
+	public static void print(int[] array) {
 		System.out.print("[");
 		for (int i = 0; i < array.length; ++ i) {
 			if (i != 0) System.out.print(",");
@@ -20,26 +20,26 @@ public final class Test1
 		System.out.print("]\n");
 	}
 
-	static void print(Tensor t) {
+	public static void print(Tensor t) {
 		System.out.print(t);
 	}
 
-	static void print(Tensor[] ts) {
+	public static void print(Tensor[] ts) {
 		System.out.println("Array of " + ts.length + " tensors:\n");
 		for (Tensor t : ts) print(t);
 	}
 
-	static void print(String text) {
+	public static void print(String text) {
 		System.out.println(text);
 	}
 
 	static long time1 = System.currentTimeMillis();
 	
-	static void tic() {
+	public static void tic() {
 		time1 = System.currentTimeMillis();
 	}
 
-	static void toc() {
+	public static void toc() {
 		long elapsed = System.currentTimeMillis() - time1;
 		java.text.SimpleDateFormat formater = new java.text.SimpleDateFormat("mm:ss:ms");
 		System.out.println("Time elapsed: " + formater.format(new java.util.Date(elapsed)));
@@ -344,6 +344,63 @@ public final class Test1
 		x.set(-0.5, 1); x.set(-0.5, 2); System.out.println(mlp.forward(x));
 	}
 
+	static void testStochasticGradient3() {
+		int batchSize = 100;
+		Tensor[][] dataset = new Tensor[100][];
+		for (int i = 0; i < dataset.length; ++ i) {
+			Tensor input = randn(batchSize, 2);
+			Tensor output = new Tensor(batchSize, 1);
+			for (int j = 1; j < batchSize; ++ j) {
+				if (input.get(j, 1) * input.get(j, 2) > 0) {
+					output.set(-1, j, 1);
+				}
+				else {
+					output.set(1, j, 1);
+				}				
+			}
+			dataset[i] = new Tensor[] { input, output };
+		}
+
+		/*
+		require "nn"
+		mlp = nn.Sequential();  -- make a multi-layer perceptron
+		inputs = 2; outputs = 1; HUs = 20; -- parameters
+		mlp:add(nn.Linear(inputs, HUs))
+		mlp:add(nn.Tanh())
+		mlp:add(nn.Linear(HUs, outputs))
+		*/
+		Container mlp = new Sequential();
+		int inputs = 2, outputs = 1, HUs = 20;
+		mlp.add(new Linear(inputs, HUs));
+		mlp.add(new Tanh());
+		mlp.add(new Linear(HUs, outputs));
+
+		/*
+		criterion = nn.MSECriterion()  
+		trainer = nn.StochasticGradient(mlp, criterion)
+		trainer.learningRate = 0.01
+		trainer:train(dataset)
+		*/
+
+		Criterion criterion = new MSECriterion();
+		StochasticGradient trainer = new StochasticGradient(mlp, criterion);
+		trainer.learningRate = 0.001;
+		trainer.train(dataset);
+
+		/*
+		x = torch.Tensor(2)
+		x[1] =  0.5; x[2] =  0.5; print(mlp:forward(x))
+		x[1] =  0.5; x[2] = -0.5; print(mlp:forward(x))
+		x[1] = -0.5; x[2] =  0.5; print(mlp:forward(x))
+		x[1] = -0.5; x[2] = -0.5; print(mlp:forward(x))
+		*/
+		Tensor x = new Tensor(2);
+		x.set(0.5, 1); x.set(0.5, 2); System.out.println(mlp.forward(x));
+		x.set(0.5, 1); x.set(-0.5, 2); System.out.println(mlp.forward(x));
+		x.set(-0.5, 1); x.set(0.5, 2); System.out.println(mlp.forward(x));
+		x.set(-0.5, 1); x.set(-0.5, 2); System.out.println(mlp.forward(x));
+	}
+
 	public static void main(String ... args) {
 		tic();
 
@@ -352,7 +409,8 @@ public final class Test1
 		//testJacobian3();
 		//testJacobian4();
 		//testStochasticGradient1();
-		testStochasticGradient2();
+		//testStochasticGradient2();
+		testStochasticGradient3();
 		
 		toc();
 	}
